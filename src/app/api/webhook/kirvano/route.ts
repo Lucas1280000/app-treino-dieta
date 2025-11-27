@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Forçar rota a ser completamente dinâmica (não fazer pre-render no build)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const payment = await request.json();
