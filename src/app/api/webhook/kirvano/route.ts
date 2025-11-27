@@ -1,50 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-// Forçar rota a ser completamente dinâmica (não fazer pre-render no build)
+// Força a rota a ser dinâmica (não fazer build-time rendering)
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function POST(request: NextRequest) {
-  try {
-    const payment = await request.json();
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-    console.log("📥 Webhook recebido da Kirvano:", payment);
-
-    if (payment.status === "paid") {
-      console.log("✅ Pagamento confirmado:", payment);
-
-      // Verificar se as variáveis de ambiente estão configuradas
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-      if (supabaseUrl && supabaseKey) {
-        // Lazy import do Supabase apenas quando necessário
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        // Atualizar status de pagamento no Supabase
-        const { error } = await supabase
-          .from('payment_status')
-          .update({ paid: true, updated_at: new Date().toISOString() })
-          .eq('id', 1);
-
-        if (error) {
-          console.error("❌ Erro ao atualizar status no Supabase:", error);
-          return NextResponse.json({ error: "Erro ao atualizar status" }, { status: 500 });
-        }
-
-        console.log("🎉 Status de pagamento atualizado no banco!");
-      } else {
-        console.warn("⚠️ Variáveis do Supabase não configuradas. Webhook recebido mas não processado.");
-      }
-    }
-
-    return NextResponse.json({ received: true }, { status: 200 });
-  } catch (error) {
-    console.error("❌ Erro ao processar webhook:", error);
-    return NextResponse.json(
-      { error: "Erro ao processar webhook" },
-      { status: 500 }
-    );
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables");
   }
+
+  return createClient(url, key);
+}
+
+export async function POST(request: Request) {
+  try {
+    const supabase = getSupabase();
+    const body = await request.json();
+
+    // Lógica do webhook Kirvano
+    // Exemplo:
+    // await supabase.from("payments").insert({ data: body });
+
+    return NextResponse.json({ message: 'ok' }, { status: 200 });
+  } catch (e) {
+    console.error("Webhook error:", e);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  return NextResponse.json({ message: 'Webhook endpoint' }, { status: 200 });
 }
