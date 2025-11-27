@@ -1,23 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { Dumbbell, Apple, TrendingUp, Users, Zap, Award, ArrowRight, Menu, X, CreditCard, Copy, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Dumbbell, Apple, TrendingUp, Users, Zap, Award, ArrowRight, Menu, X, CreditCard, Copy, Check, Lock, Unlock } from "lucide-react";
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
 
-  const paymentLinks = {
-    mensal: "https://pay.kiwify.com.br/tT6sUvG",
-    trimestral: "https://pay.kiwify.com.br/tT6sUvG",
-    anual: "https://pay.kiwify.com.br/tT6sUvG"
-  };
+  const paymentLink = "https://pay.kirvano.com/2f8498f0-8f66-406f-8358-f3db561bf30c";
+
+  // Verificar status de pagamento ao carregar
+  useEffect(() => {
+    const paymentStatus = localStorage.getItem("fitpro_payment_status");
+    if (paymentStatus === "paid") {
+      setIsPaid(true);
+    }
+
+    // Verificar se voltou da página de pagamento
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get("payment");
+    
+    if (paymentSuccess === "success") {
+      localStorage.setItem("fitpro_payment_status", "paid");
+      setIsPaid(true);
+      // Limpar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(paymentLinks.mensal);
+    navigator.clipboard.writeText(paymentLink);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  // Simular confirmação de pagamento (para teste)
+  const handleSimulatePayment = () => {
+    localStorage.setItem("fitpro_payment_status", "paid");
+    setIsPaid(true);
+    alert("✅ Pagamento confirmado! Acesso liberado às abas de Treino e Dieta.");
   };
 
   return (
@@ -56,8 +79,18 @@ export default function Home() {
             {/* Menu Desktop */}
             <nav className="hidden md:flex items-center gap-6">
               <a href="#home" className="text-white hover:text-green-400 transition-colors font-medium">Início</a>
-              <a href="#treinos" className="text-white hover:text-green-400 transition-colors font-medium">Treinos</a>
-              <a href="#dietas" className="text-white hover:text-green-400 transition-colors font-medium">Dietas</a>
+              <a 
+                href="#treinos" 
+                className={`text-white hover:text-green-400 transition-colors font-medium flex items-center gap-2 ${!isPaid ? 'opacity-50' : ''}`}
+              >
+                Treinos {!isPaid && <Lock className="w-4 h-4" />}
+              </a>
+              <a 
+                href="#dietas" 
+                className={`text-white hover:text-green-400 transition-colors font-medium flex items-center gap-2 ${!isPaid ? 'opacity-50' : ''}`}
+              >
+                Dietas {!isPaid && <Lock className="w-4 h-4" />}
+              </a>
               <a href="#transformacao" className="text-white hover:text-green-400 transition-colors font-medium">Transformação</a>
               <a href="#pagamento" className="text-white hover:text-green-400 transition-colors font-medium">Pagamento</a>
               <a href="#planos" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2 rounded-full font-bold hover:shadow-lg hover:shadow-green-500/50 transition-all">
@@ -78,8 +111,18 @@ export default function Home() {
           {menuOpen && (
             <nav className="md:hidden mt-4 pb-4 flex flex-col gap-3">
               <a href="#home" className="text-white hover:text-green-400 transition-colors font-medium py-2">Início</a>
-              <a href="#treinos" className="text-white hover:text-green-400 transition-colors font-medium py-2">Treinos</a>
-              <a href="#dietas" className="text-white hover:text-green-400 transition-colors font-medium py-2">Dietas</a>
+              <a 
+                href="#treinos" 
+                className={`text-white hover:text-green-400 transition-colors font-medium py-2 flex items-center gap-2 ${!isPaid ? 'opacity-50' : ''}`}
+              >
+                Treinos {!isPaid && <Lock className="w-4 h-4" />}
+              </a>
+              <a 
+                href="#dietas" 
+                className={`text-white hover:text-green-400 transition-colors font-medium py-2 flex items-center gap-2 ${!isPaid ? 'opacity-50' : ''}`}
+              >
+                Dietas {!isPaid && <Lock className="w-4 h-4" />}
+              </a>
               <a href="#transformacao" className="text-white hover:text-green-400 transition-colors font-medium py-2">Transformação</a>
               <a href="#pagamento" className="text-white hover:text-green-400 transition-colors font-medium py-2">Pagamento</a>
               <a href="#planos" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full font-bold text-center">
@@ -89,6 +132,18 @@ export default function Home() {
           )}
         </div>
       </header>
+
+      {/* Banner de Status de Pagamento */}
+      {isPaid && (
+        <div className="relative z-40 bg-gradient-to-r from-green-600 to-emerald-600 py-3">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-white font-bold flex items-center justify-center gap-2">
+              <Unlock className="w-5 h-5" />
+              ✅ Acesso Liberado! Aproveite seus treinos e dietas personalizadas.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section id="home" className="relative z-10 container mx-auto px-4 py-12 md:py-20">
@@ -163,7 +218,7 @@ export default function Home() {
               <div className="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CreditCard className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Links de Pagamento</h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Link de Pagamento</h2>
               <p className="text-xl text-green-50">Acesse nosso checkout seguro e comece sua transformação agora!</p>
             </div>
 
@@ -173,54 +228,12 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-3 items-center">
                   <input 
                     type="text" 
-                    value={paymentLinks.mensal}
+                    value={paymentLink}
                     readOnly
                     className="flex-1 bg-white/20 border-2 border-white/30 rounded-xl px-4 py-3 text-white font-mono text-sm w-full"
                   />
                   <a
-                    href={paymentLinks.mensal}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white text-green-600 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    Pagar Agora
-                  </a>
-                </div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                <p className="text-green-100 text-sm font-semibold mb-3">PLANO TRIMESTRAL - R$ 119/3 meses:</p>
-                <div className="flex flex-col sm:flex-row gap-3 items-center">
-                  <input 
-                    type="text" 
-                    value={paymentLinks.trimestral}
-                    readOnly
-                    className="flex-1 bg-white/20 border-2 border-white/30 rounded-xl px-4 py-3 text-white font-mono text-sm w-full"
-                  />
-                  <a
-                    href={paymentLinks.trimestral}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white text-green-600 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    Pagar Agora
-                  </a>
-                </div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                <p className="text-green-100 text-sm font-semibold mb-3">PLANO ANUAL - R$ 399/ano:</p>
-                <div className="flex flex-col sm:flex-row gap-3 items-center">
-                  <input 
-                    type="text" 
-                    value={paymentLinks.anual}
-                    readOnly
-                    className="flex-1 bg-white/20 border-2 border-white/30 rounded-xl px-4 py-3 text-white font-mono text-sm w-full"
-                  />
-                  <a
-                    href={paymentLinks.anual}
+                    href={paymentLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-white text-green-600 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
@@ -231,6 +244,19 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Botão de teste para simular pagamento */}
+            {!isPaid && (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={handleSimulatePayment}
+                  className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-bold hover:bg-yellow-300 transition-all"
+                >
+                  🧪 Simular Pagamento (Teste)
+                </button>
+                <p className="text-white/70 text-xs mt-2">Use este botão para testar o sistema de liberação</p>
+              </div>
+            )}
 
             <div className="mt-8 grid md:grid-cols-3 gap-4 text-center">
               <div className="bg-white/10 rounded-xl p-4">
@@ -252,126 +278,160 @@ export default function Home() {
 
       {/* Treinos Section */}
       <section id="treinos" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Treinos Personalizados</h2>
-          <p className="text-xl text-gray-300">Escolha seu nível e comece sua transformação</p>
-        </div>
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Iniciante */}
-          <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8 hover:border-green-400 transition-all">
-            <div className="flex items-center gap-3 mb-6">
-              <Zap className="w-8 h-8 text-green-400" />
-              <h3 className="text-3xl font-bold text-white">Iniciante</h3>
-            </div>
-            <img 
-              src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop" 
-              alt="Treino Iniciante" 
-              className="w-full h-48 object-cover rounded-2xl mb-6"
-            />
-            <div className="space-y-4">
-              <div className="bg-white/5 rounded-xl p-4">
-                <p className="text-green-400 font-semibold mb-2">👨 Masculino</p>
-                <p className="text-gray-300 text-sm">• 3x por semana • Foco em fundamentos • Exercícios básicos</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4">
-                <p className="text-green-400 font-semibold mb-2">👩 Feminino</p>
-                <p className="text-gray-300 text-sm">• 3x por semana • Tonificação • Exercícios adaptados</p>
-              </div>
+        {!isPaid ? (
+          <div className="text-center py-20">
+            <div className="bg-white/5 backdrop-blur-md border-2 border-green-500/30 rounded-3xl p-12 max-w-2xl mx-auto">
+              <Lock className="w-20 h-20 text-green-400 mx-auto mb-6" />
+              <h2 className="text-4xl font-bold text-white mb-4">Conteúdo Bloqueado</h2>
+              <p className="text-xl text-gray-300 mb-8">
+                Assine o plano mensal para ter acesso aos treinos personalizados
+              </p>
+              <a href="#planos" className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-green-500/50 transition-all">
+                Ver Planos
+              </a>
             </div>
           </div>
+        ) : (
+          <>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Treinos Personalizados</h2>
+              <p className="text-xl text-gray-300">Escolha seu nível e comece sua transformação</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Iniciante */}
+              <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8 hover:border-green-400 transition-all">
+                <div className="flex items-center gap-3 mb-6">
+                  <Zap className="w-8 h-8 text-green-400" />
+                  <h3 className="text-3xl font-bold text-white">Iniciante</h3>
+                </div>
+                <img 
+                  src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop" 
+                  alt="Treino Iniciante" 
+                  className="w-full h-48 object-cover rounded-2xl mb-6"
+                />
+                <div className="space-y-4">
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <p className="text-green-400 font-semibold mb-2">👨 Masculino</p>
+                    <p className="text-gray-300 text-sm">• 3x por semana • Foco em fundamentos • Exercícios básicos</p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <p className="text-green-400 font-semibold mb-2">👩 Feminino</p>
+                    <p className="text-gray-300 text-sm">• 3x por semana • Tonificação • Exercícios adaptados</p>
+                  </div>
+                </div>
+              </div>
 
-          {/* Intermediário */}
-          <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8 hover:border-green-400 transition-all">
-            <div className="flex items-center gap-3 mb-6">
-              <Award className="w-8 h-8 text-green-400" />
-              <h3 className="text-3xl font-bold text-white">Intermediário</h3>
-            </div>
-            <img 
-              src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&h=400&fit=crop" 
-              alt="Treino Intermediário" 
-              className="w-full h-48 object-cover rounded-2xl mb-6"
-            />
-            <div className="space-y-4">
-              <div className="bg-white/5 rounded-xl p-4">
-                <p className="text-green-400 font-semibold mb-2">👨 Masculino</p>
-                <p className="text-gray-300 text-sm">• 4-5x por semana • Hipertrofia • Exercícios avançados</p>
+              {/* Intermediário */}
+              <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8 hover:border-green-400 transition-all">
+                <div className="flex items-center gap-3 mb-6">
+                  <Award className="w-8 h-8 text-green-400" />
+                  <h3 className="text-3xl font-bold text-white">Intermediário</h3>
+                </div>
+                <img 
+                  src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&h=400&fit=crop" 
+                  alt="Treino Intermediário" 
+                  className="w-full h-48 object-cover rounded-2xl mb-6"
+                />
+                <div className="space-y-4">
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <p className="text-green-400 font-semibold mb-2">👨 Masculino</p>
+                    <p className="text-gray-300 text-sm">• 4-5x por semana • Hipertrofia • Exercícios avançados</p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-4">
+                    <p className="text-green-400 font-semibold mb-2">👩 Feminino</p>
+                    <p className="text-gray-300 text-sm">• 4-5x por semana • Definição • Treinos intensivos</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white/5 rounded-xl p-4">
-                <p className="text-green-400 font-semibold mb-2">👩 Feminino</p>
-                <p className="text-gray-300 text-sm">• 4-5x por semana • Definição • Treinos intensivos</p>
-              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </section>
 
       {/* Dietas Section */}
       <section id="dietas" className="relative z-10 container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Dietas Personalizadas</h2>
-          <p className="text-xl text-gray-300">Calculadas com base na sua taxa metabólica basal</p>
-        </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8">
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-              <TrendingUp className="w-8 h-8 text-white" />
+        {!isPaid ? (
+          <div className="text-center py-20">
+            <div className="bg-white/5 backdrop-blur-md border-2 border-green-500/30 rounded-3xl p-12 max-w-2xl mx-auto">
+              <Lock className="w-20 h-20 text-green-400 mx-auto mb-6" />
+              <h2 className="text-4xl font-bold text-white mb-4">Conteúdo Bloqueado</h2>
+              <p className="text-xl text-gray-300 mb-8">
+                Assine o plano mensal para ter acesso às dietas personalizadas
+              </p>
+              <a href="#planos" className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-green-500/50 transition-all">
+                Ver Planos
+              </a>
             </div>
-            <h3 className="text-2xl font-bold text-white text-center mb-4">Ganho de Massa</h3>
-            <img 
-              src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop" 
-              alt="Ganho de Massa" 
-              className="w-full h-48 object-cover rounded-2xl mb-6"
-            />
-            <ul className="space-y-3 text-gray-300">
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Superávit calórico calculado</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Alto teor proteico</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Refeições estratégicas</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Diferenciado por sexo</span>
-              </li>
-            </ul>
           </div>
+        ) : (
+          <>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Dietas Personalizadas</h2>
+              <p className="text-xl text-gray-300">Calculadas com base na sua taxa metabólica basal</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8">
+                <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white text-center mb-4">Ganho de Massa</h3>
+                <img 
+                  src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop" 
+                  alt="Ganho de Massa" 
+                  className="w-full h-48 object-cover rounded-2xl mb-6"
+                />
+                <ul className="space-y-3 text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Superávit calórico calculado</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Alto teor proteico</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Refeições estratégicas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Diferenciado por sexo</span>
+                  </li>
+                </ul>
+              </div>
 
-          <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8">
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-              <Zap className="w-8 h-8 text-white" />
+              <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 backdrop-blur-md border-2 border-green-500/50 rounded-3xl p-8">
+                <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                  <Zap className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white text-center mb-4">Perda de Gordura</h3>
+                <img 
+                  src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop" 
+                  alt="Perda de Gordura" 
+                  className="w-full h-48 object-cover rounded-2xl mb-6"
+                />
+                <ul className="space-y-3 text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Déficit calórico controlado</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Preservação muscular</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Alimentos termogênicos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span>Adaptado ao seu metabolismo</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <h3 className="text-2xl font-bold text-white text-center mb-4">Perda de Gordura</h3>
-            <img 
-              src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop" 
-              alt="Perda de Gordura" 
-              className="w-full h-48 object-cover rounded-2xl mb-6"
-            />
-            <ul className="space-y-3 text-gray-300">
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Déficit calórico controlado</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Preservação muscular</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Alimentos termogênicos</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">✓</span>
-                <span>Adaptado ao seu metabolismo</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+          </>
+        )}
       </section>
 
       {/* Transformação Section */}
@@ -424,41 +484,27 @@ export default function Home() {
       <section id="planos" className="relative z-10 container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Comece Sua Transformação</h2>
-          <p className="text-xl text-gray-300">Escolha o plano ideal para você</p>
+          <p className="text-xl text-gray-300">Plano ideal para você</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="bg-white/5 backdrop-blur-md border border-green-500/30 rounded-3xl p-8 hover:scale-105 transition-all">
-            <h3 className="text-2xl font-bold text-white mb-2">Mensal</h3>
-            <p className="text-4xl font-bold text-green-400 mb-6">R$ 29<span className="text-lg text-gray-400">/mês</span></p>
-            <ul className="space-y-3 text-gray-300 mb-8">
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Treinos personalizados</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Dietas calculadas</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Acompanhamento básico</span>
-              </li>
-            </ul>
-            <a href={paymentLinks.mensal} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 hover:bg-green-500 text-white text-center py-3 rounded-full font-bold transition-all">
-              Assinar Agora
-            </a>
-          </div>
-
+        <div className="max-w-md mx-auto">
           <div className="bg-gradient-to-br from-green-600 to-emerald-600 border-4 border-green-400 rounded-3xl p-8 hover:scale-105 transition-all relative">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-bold">
-              MAIS POPULAR
+              MELHOR ESCOLHA
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">Trimestral</h3>
-            <p className="text-4xl font-bold text-white mb-6">R$ 119<span className="text-lg text-green-100">/3 meses</span></p>
+            <h3 className="text-2xl font-bold text-white mb-2">Mensal</h3>
+            <p className="text-4xl font-bold text-white mb-6">R$ 29<span className="text-lg text-green-100">/mês</span></p>
             <ul className="space-y-3 text-white mb-8">
               <li className="flex items-start gap-2">
                 <span className="text-yellow-300">✓</span>
-                <span>Tudo do plano Mensal</span>
+                <span>Treinos personalizados</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-300">✓</span>
+                <span>Dietas calculadas</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-300">✓</span>
+                <span>Acompanhamento completo</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-300">✓</span>
@@ -468,38 +514,8 @@ export default function Home() {
                 <span className="text-yellow-300">✓</span>
                 <span>Comparação antes/depois</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-yellow-300">✓</span>
-                <span>Economia de 20%</span>
-              </li>
             </ul>
-            <a href={paymentLinks.trimestral} target="_blank" rel="noopener noreferrer" className="block w-full bg-white text-green-600 text-center py-3 rounded-full font-bold hover:bg-gray-100 transition-all">
-              Assinar Agora
-            </a>
-          </div>
-
-          <div className="bg-white/5 backdrop-blur-md border border-green-500/30 rounded-3xl p-8 hover:scale-105 transition-all">
-            <h3 className="text-2xl font-bold text-white mb-2">Anual</h3>
-            <p className="text-4xl font-bold text-green-400 mb-6">R$ 399<span className="text-lg text-gray-400">/ano</span></p>
-            <ul className="space-y-3 text-gray-300 mb-8">
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Tudo do plano Trimestral</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Consultoria mensal</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Grupo VIP</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Economia de 35%</span>
-              </li>
-            </ul>
-            <a href={paymentLinks.anual} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 hover:bg-green-500 text-white text-center py-3 rounded-full font-bold transition-all">
+            <a href={paymentLink} target="_blank" rel="noopener noreferrer" className="block w-full bg-white text-green-600 text-center py-3 rounded-full font-bold hover:bg-gray-100 transition-all">
               Assinar Agora
             </a>
           </div>
@@ -514,11 +530,11 @@ export default function Home() {
             Junte-se a mais de 10.000 pessoas que já transformaram suas vidas com o FIT PRO
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={paymentLinks.mensal} target="_blank" rel="noopener noreferrer" className="bg-white text-green-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2">
+            <a href={paymentLink} target="_blank" rel="noopener noreferrer" className="bg-white text-green-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2">
               Acessar Pagamento <ArrowRight className="w-5 h-5" />
             </a>
             <a href="#planos" className="bg-green-800 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-700 transition-all">
-              Ver Planos
+              Ver Plano
             </a>
           </div>
         </div>
